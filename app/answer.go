@@ -33,17 +33,19 @@ func (a *Answer) Encode() []byte {
 	buf = append(buf, typeBuf...)
 
 	// Encode Class (2 bytes, big endian)
-	binary.BigEndian.PutUint16(typeBuf, a.Class)
-	buf = append(buf, typeBuf...)
+	classBuf := make([]byte, 2)
+	binary.BigEndian.PutUint16(classBuf, a.Class)
+	buf = append(buf, classBuf...)
 
 	// Encode TTL (4 bytes, big endian)
 	ttlBuf := make([]byte, 4)
 	binary.BigEndian.PutUint32(ttlBuf, a.TTL)
-	buf = append(buf, typeBuf...)
+	buf = append(buf, ttlBuf...)
 
 	// Encode RDLength (2 bytes, big endian)
-	binary.BigEndian.PutUint16(typeBuf, a.RDLength)
-	buf = append(buf, typeBuf...)
+	rdLengthBuf := make([]byte, 2)
+	binary.BigEndian.PutUint16(rdLengthBuf, a.RDLength)
+	buf = append(buf, rdLengthBuf...)
 
 	// Add RData
 	for i := range strings.SplitSeq(a.RData.IP.String(), ".") {
