@@ -20,7 +20,7 @@ func (q *Question) Encode() []byte {
 		buf = append(buf, []byte(data)...)
 	}
 	buf = append(buf, 0) // Null byte to terminate the domain name
-	binary.BigEndian.PutUint16(buf[:len(buf)+2], q.Type)
-	binary.BigEndian.PutUint16(buf[:len(buf)+2], q.Class)
+	binary.BigEndian.PutUint16(buf[len(buf):len(buf)+2], q.Type)
+	binary.BigEndian.PutUint16(buf[len(buf):len(buf)+2], q.Class)
 	return buf
 }
