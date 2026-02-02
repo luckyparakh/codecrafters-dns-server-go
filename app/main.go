@@ -49,24 +49,33 @@ func main() {
 			Z:       0,
 			RC:      0,
 			QDCount: 1,
-			ANCount: 0,
+			ANCount: 1,
 			NSCount: 0,
 			ARCount: 0,
 		}
-		encodedHeader := h.Encode()
 
 		q := Question{
 			DomainName: "codecrafters.io",
 			Type:       1,
 			Class:      1,
 		}
-		encodedQuestion := q.Encode()
+
+		a := Answer{
+			Name:     "codecrafters.io",
+			Type:     1,
+			Class:    1,
+			TTL:      60,
+			RDLength: 4,
+			RData: net.IPAddr{
+				IP: net.IP{8, 8, 8, 8},
+			},
+		}
 
 		// Create an empty response
 		response := []byte{}
-		response = append(response, encodedHeader...)
-		response = append(response, encodedQuestion...)
-
+		response = append(response, h.Encode()...)
+		response = append(response, q.Encode()...)
+		response = append(response, a.Encode()...)
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			fmt.Println("Failed to send response:", err)
