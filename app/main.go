@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 )
@@ -34,12 +35,29 @@ func main() {
 			break
 		}
 
-		receivedData := buf[:size]
-		receivedDatas := string(buf[:size])
-		fmt.Printf("Received %d bytes from %s: %b %s\n", size, source, receivedData, receivedDatas)
+		receivedData := string(buf[:size])
+		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
+
+		h := Header{
+			ID:      binary.BigEndian.Uint16(buf[0:2]),
+			QR:      true,
+			OC:      0,
+			AA:      false,
+			TC:      false,
+			RD:      false,
+			RA:      false,
+			Z:       0,
+			RC:      0,
+			QDCount: 0,
+			ANCount: 0,
+			NSCount: 0,
+			ARCount: 0,
+		}
+		encodedHeader := h.Encode()
 
 		// Create an empty response
 		response := []byte{}
+		response = append(response, encodedHeader...)
 
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
