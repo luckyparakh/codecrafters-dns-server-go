@@ -68,6 +68,7 @@ func ParseQuestion(data []byte) Question {
 			break
 		}
 		label := data[i+1 : i+1+lengthOfLabel]
+		label = append(label, '.')
 		sb.Write(label)
 		i = i + 1 + lengthOfLabel
 	}
