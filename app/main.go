@@ -43,7 +43,7 @@ func main() {
 		if receivedHeader.OC != 0 {
 			rc = 4
 		}
-		
+
 		h := Header{
 			ID:      receivedHeader.ID,
 			QR:      true,
@@ -55,7 +55,7 @@ func main() {
 			Z:       0,
 			RC:      rc,
 			QDCount: receivedHeader.QDCount,
-			ANCount: receivedHeader.ANCount,
+			ANCount: 1,
 			NSCount: receivedHeader.NSCount,
 			ARCount: receivedHeader.ARCount,
 		}

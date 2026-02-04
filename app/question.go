@@ -29,8 +29,9 @@ func (q *Question) Encode() []byte {
 	buf = append(buf, typeBuf...)
 
 	// Encode Class (2 bytes, big endian)
-	binary.BigEndian.PutUint16(typeBuf, q.Class)
-	buf = append(buf, typeBuf...)
+	classBuf := make([]byte, 2)
+	binary.BigEndian.PutUint16(classBuf, q.Class)
+	buf = append(buf, classBuf...)
 
 	return buf
 }
