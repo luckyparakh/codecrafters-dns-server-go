@@ -62,16 +62,30 @@ func encodeDomainName(domain string) ([]byte, error) {
 func ParseQuestion(data []byte) Question {
 	i := 0
 	var sb strings.Builder
-	for {
+	for i < len(data) {
 		lengthOfLabel := int(data[i])
+
+		// End of domain name
 		if lengthOfLabel == 0 {
 			break
 		}
-		label := data[i+1 : i+1+lengthOfLabel]
+
+		// End of label index
+		eol := i + 1 + lengthOfLabel
+
+		// Safety check to avoid out-of-bounds slice
+		if eol > len(data) {
+			fmt.Println("Invalid label length, out of bounds")
+			break
+		}
+
+		// Get the label and append to the domain name
+		label := data[i+1 : eol]
 		label = append(label, '.')
 		sb.Write(label)
 		i = i + 1 + lengthOfLabel
 	}
+
 	return Question{
 		DomainName: sb.String(),
 		Type:       1, // Hardcoded as of now
