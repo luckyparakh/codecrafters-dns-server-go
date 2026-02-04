@@ -40,9 +40,10 @@ func main() {
 		fmt.Printf("\nReceived Header %+v\n", receivedHeader)
 
 		var rc uint8
-		if receivedHeader.RC != 0 {
+		if receivedHeader.OC != 0 {
 			rc = 4
 		}
+		
 		h := Header{
 			ID:      receivedHeader.ID,
 			QR:      true,
