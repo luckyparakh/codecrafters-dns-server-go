@@ -137,7 +137,8 @@ func ParseQuestion1(data []byte) Question {
 
 func ParseQuestion(data []byte) Question {
 	curr := 0
-	var sb strings.Builder
+	// var sb strings.Builder
+	var domainParts []string
 	for curr < len(data) {
 		// currByte := data[curr]
 		// if currByte == 0x00 {
@@ -152,20 +153,18 @@ func ParseQuestion(data []byte) Question {
 		}
 		curr++
 
-		// End of label index
-		eol := curr + lengthOfLabel
-
 		// Safety check to avoid out-of-bounds slice
-		if eol > len(data) {
+		if curr+lengthOfLabel > len(data) {
 			fmt.Println("Invalid label length, out of bounds")
 			break
 		}
 
 		// Get the label and append to the domain name
-		label := data[curr:eol]
+		label := data[curr : curr+lengthOfLabel]
 		if len(label) > 0 {
-			sb.Write(label)
-			sb.WriteByte('.')
+			// sb.Write(label)
+			// sb.WriteByte('.')
+			domainParts = append(domainParts, string(label))
 		}
 		curr += lengthOfLabel
 	}
@@ -179,10 +178,8 @@ func ParseQuestion(data []byte) Question {
 	curr += 2
 	qClass := binary.BigEndian.Uint16(data[curr : curr+2])
 	return Question{
-		DomainName: sb.String(),
+		DomainName: strings.Join(domainParts, "."),
 		Type:       qType,
 		Class:      qClass,
 	}
 }
-
-// 0(4),1d,2,3,4d,5(5),6d,7,8,9,10,11d,12E
