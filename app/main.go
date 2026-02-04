@@ -37,7 +37,7 @@ func main() {
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
 		receivedHeader := ParseHeader(buf[:12])
-		fmt.Printf("Received Header %+v\n", receivedHeader)
+		fmt.Printf("\nReceived Header %+v\n", receivedHeader)
 
 		var rc uint8
 		if receivedHeader.RC != 0 {

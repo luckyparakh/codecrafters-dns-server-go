@@ -77,16 +77,16 @@ func ParseHeader(data []byte) *Header {
 		h.QR = true
 	}
 	h.OC = uint8(flags & 0x7800)
-	if (flags << 5 & 0x8000) == 1 {
+	if (flags << 6 & 0x8000) == 1 {
 		h.AA = true
 	}
-	if (flags << 6 & 0x8000) == 1 {
+	if (flags << 7 & 0x8000) == 1 {
 		h.TC = true
 	}
-	if (flags << 7 & 0x8000) == 1 {
+	if (flags << 8 & 0x8000) == 1 {
 		h.RD = true
 	}
-	if (flags << 8 & 0x8000) == 1 {
+	if (flags << 9 & 0x8000) == 1 {
 		h.RA = true
 	}
 	h.Z = uint8(flags & 0x0070)
