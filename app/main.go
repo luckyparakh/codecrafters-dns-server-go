@@ -86,7 +86,7 @@ func main() {
 			},
 		}
 
-		// Create an empty response
+		// Create a response
 		response := []byte{}
 		response = append(response, h.Encode()...)
 		response = append(response, parsedMessage.Question.Encode()...)

@@ -138,19 +138,18 @@ func ParseQuestion1(data []byte) Question {
 func ParseQuestion(data []byte) Question {
 	curr := 0
 	var sb strings.Builder
-	for {
-		// Safety check to avoid out-of-bounds slice
-		if curr >= len(data) {
-			break
-		}
-
-		currByte := data[curr]
-		if currByte == 0x00 {
-			curr++ // Move past the null byte
-			break
-		}
+	for curr < len(data) {
+		// currByte := data[curr]
+		// if currByte == 0x00 {
+		// 	curr++ // Move past the null byte
+		// 	break
+		// }
 
 		lengthOfLabel := int(data[curr])
+		if lengthOfLabel == 0 {
+			curr++
+			break
+		}
 		curr++
 
 		// End of label index
