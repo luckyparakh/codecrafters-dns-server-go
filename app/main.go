@@ -3,7 +3,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"net"
 )
@@ -37,21 +36,26 @@ func main() {
 
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
+		receivedHeader := ParseHeader(buf[:12])
 
+		var rc uint8
+		if receivedHeader.RC != 0 {
+			rc = 4
+		}
 		h := Header{
-			ID:      binary.BigEndian.Uint16(buf[0:2]),
+			ID:      receivedHeader.ID,
 			QR:      true,
-			OC:      0,
+			OC:      receivedHeader.OC,
 			AA:      false,
 			TC:      false,
-			RD:      false,
+			RD:      receivedHeader.RD,
 			RA:      false,
 			Z:       0,
-			RC:      0,
-			QDCount: 1,
-			ANCount: 1,
-			NSCount: 0,
-			ARCount: 0,
+			RC:      rc,
+			QDCount: receivedHeader.QDCount,
+			ANCount: receivedHeader.ANCount,
+			NSCount: receivedHeader.NSCount,
+			ARCount: receivedHeader.ARCount,
 		}
 
 		q := Question{

@@ -68,3 +68,33 @@ func (h *Header) Encode() []byte {
 
 	return buf
 }
+
+func ParseHeader(data []byte) *Header {
+	h := Header{}
+	h.ID = binary.BigEndian.Uint16(data[0:2])
+	flags := binary.BigEndian.Uint16(data[2:4])
+	if (flags & 0x8000) == 1 {
+		h.QR = true
+	}
+	h.OC = uint8(flags & 0x7800)
+	if (flags << 5 & 0x8000) == 1 {
+		h.AA = true
+	}
+	if (flags << 6 & 0x8000) == 1 {
+		h.TC = true
+	}
+	if (flags << 7 & 0x8000) == 1 {
+		h.RD = true
+	}
+	if (flags << 8 & 0x8000) == 1 {
+		h.RA = true
+	}
+	h.Z = uint8(flags & 0x0070)
+	h.RC = uint8(flags & 0x000F)
+
+	h.QDCount = binary.BigEndian.Uint16(data[4:6])
+	h.ANCount = binary.BigEndian.Uint16(data[6:8])
+	h.NSCount = binary.BigEndian.Uint16(data[8:10])
+	h.ARCount = binary.BigEndian.Uint16(data[10:12])
+	return &h
+}
