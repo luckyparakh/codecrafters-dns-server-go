@@ -103,7 +103,7 @@ func parseData(data []byte) Message {
 	fmt.Printf("\nReceived Header: %+v\n", receivedHeader)
 
 	q := ParseQuestion(data[12:])
-	fmt.Printf("Question: %+v\n", q)
+	fmt.Printf("\nQuestion: %+v\n", q)
 
 	return Message{
 		Header:   receivedHeader,

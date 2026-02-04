@@ -60,18 +60,25 @@ func encodeDomainName(domain string) ([]byte, error) {
 }
 
 func ParseQuestion(data []byte) Question {
-	i := 0
+	curr := 0
 	var sb strings.Builder
-	for i < len(data) {
-		lengthOfLabel := int(data[i])
-
-		// End of domain name
-		if lengthOfLabel == 0 {
+	for {
+		// Safety check to avoid out-of-bounds slice
+		if curr >= len(data) {
 			break
 		}
 
+		currByte := data[curr]
+		if currByte == 0 {
+			curr++ // Move past the null byte
+			break
+		}
+
+		lengthOfLabel := int(data[curr])
+		curr++
+
 		// End of label index
-		eol := i + 1 + lengthOfLabel
+		eol := curr + lengthOfLabel
 
 		// Safety check to avoid out-of-bounds slice
 		if eol > len(data) {
@@ -80,10 +87,10 @@ func ParseQuestion(data []byte) Question {
 		}
 
 		// Get the label and append to the domain name
-		label := data[i+1 : eol]
+		label := data[curr:eol]
 		label = append(label, '.')
 		sb.Write(label)
-		i = i + 1 + lengthOfLabel
+		curr += lengthOfLabel
 	}
 
 	return Question{
