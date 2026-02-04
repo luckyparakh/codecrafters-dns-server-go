@@ -164,8 +164,10 @@ func ParseQuestion(data []byte) Question {
 
 		// Get the label and append to the domain name
 		label := data[curr:eol]
-		label = append(label, '.')
-		sb.Write(label)
+		if len(label) > 0 {
+			sb.Write(label)
+			sb.WriteByte('.')
+		}
 		curr += lengthOfLabel
 	}
 
