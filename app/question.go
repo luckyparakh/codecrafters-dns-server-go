@@ -96,7 +96,7 @@ func parseName(data []byte, offset int) (string, int, error) {
 	return string(domain), curOffset, nil
 }
 
-func ParseQuestion(data []byte) Question {
+func ParseQuestion1(data []byte) Question {
 	domain := make([]byte, 0, 64)
 	curOffset := 0
 	for {
@@ -135,7 +135,7 @@ func ParseQuestion(data []byte) Question {
 	}
 }
 
-func ParseQuestion1(data []byte) Question {
+func ParseQuestion(data []byte) Question {
 	curr := 0
 	var sb strings.Builder
 	for {
@@ -145,7 +145,7 @@ func ParseQuestion1(data []byte) Question {
 		}
 
 		currByte := data[curr]
-		if currByte == 0 {
+		if currByte == 0x00 {
 			curr++ // Move past the null byte
 			break
 		}
@@ -169,10 +169,18 @@ func ParseQuestion1(data []byte) Question {
 		curr += lengthOfLabel
 	}
 
+	if curr+4 > len(data) {
+		// Not enough data for Type and Class
+		return Question{}
+	}
+
+	qType := binary.BigEndian.Uint16(data[curr : curr+2])
+	curr += 2
+	qClass := binary.BigEndian.Uint16(data[curr : curr+2])
 	return Question{
 		DomainName: sb.String(),
-		Type:       1, // Hardcoded as of now
-		Class:      1, // Hardcoded as of now
+		Type:       qType,
+		Class:      qClass,
 	}
 }
 
