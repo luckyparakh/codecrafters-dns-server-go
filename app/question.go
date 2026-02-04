@@ -59,7 +59,83 @@ func encodeDomainName(domain string) ([]byte, error) {
 	return buf, nil
 }
 
+func parseName(data []byte, offset int) (string, int, error) {
+	if offset > len(data) {
+		return "", 0, fmt.Errorf("Offset out of range")
+	}
+
+	domain := make([]byte, 0, 64)
+	curOffset := offset
+
+	for {
+		if curOffset >= len(data) {
+			return "", 0, fmt.Errorf("name parse: truncated")
+		}
+
+		curByte := data[curOffset]
+
+		if curByte == 0x00 {
+			curOffset++
+			break
+		}
+
+		nameLen := int(curByte)
+		curOffset++
+
+		if curOffset+nameLen > len(data) {
+			return "", 0, fmt.Errorf("name parse: truncated label")
+		}
+
+		if len(domain) > 0 {
+			domain = append(domain, '.')
+		}
+		domain = append(domain, data[curOffset:curOffset+nameLen]...)
+		curOffset += nameLen
+	}
+
+	return string(domain), curOffset, nil
+}
+
 func ParseQuestion(data []byte) Question {
+	domain := make([]byte, 0, 64)
+	curOffset := 0
+	for {
+		if curOffset >= len(data) {
+			break
+		}
+		curByte := data[curOffset]
+		if curByte == 0x00 {
+			curOffset++
+			break
+		}
+		nameLen := int(curByte)
+		curOffset++
+		if curOffset+nameLen > len(data) {
+			break
+		}
+		if len(domain) > 0 {
+			domain = append(domain, '.')
+		}
+		domain = append(domain, data[curOffset:curOffset+nameLen]...)
+		curOffset += nameLen
+	}
+
+	if curOffset+4 > len(data) {
+		// Not enough data for Type and Class
+		return Question{}
+	}
+
+	qType := binary.BigEndian.Uint16(data[curOffset : curOffset+2])
+	curOffset += 2
+	qClass := binary.BigEndian.Uint16(data[curOffset : curOffset+2])
+	return Question{
+		DomainName: string(domain),
+		Type:       qType,
+		Class:      qClass,
+	}
+}
+
+func ParseQuestion1(data []byte) Question {
 	curr := 0
 	var sb strings.Builder
 	for {
