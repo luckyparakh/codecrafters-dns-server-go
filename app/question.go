@@ -58,3 +58,24 @@ func encodeDomainName(domain string) ([]byte, error) {
 	buf = append(buf, 0) // Null byte to terminate the domain name
 	return buf, nil
 }
+
+func ParseQuestion(data []byte) Question {
+	i := 0
+	var sb strings.Builder
+	for {
+		lengthOfLabel := int(data[i])
+		if lengthOfLabel == 0 {
+			break
+		}
+		label := data[i+1 : i+1+lengthOfLabel]
+		sb.Write(label)
+		i = i + 1 + lengthOfLabel
+	}
+	return Question{
+		DomainName: sb.String(),
+		Type:       1, // Hardcoded as of now
+		Class:      1, // Hardcoded as of now
+	}
+}
+
+// 0(4),1d,2,3,4d,5(5),6d,7,8,9,10,11d,12E

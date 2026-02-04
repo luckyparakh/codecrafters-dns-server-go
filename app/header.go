@@ -69,7 +69,7 @@ func (h *Header) Encode() []byte {
 	return buf
 }
 
-func ParseHeader(data []byte) *Header {
+func ParseHeader(data []byte) Header {
 	h := Header{}
 	h.ID = binary.BigEndian.Uint16(data[0:2])
 
@@ -94,5 +94,5 @@ func ParseHeader(data []byte) *Header {
 	h.ANCount = binary.BigEndian.Uint16(data[6:8])
 	h.NSCount = binary.BigEndian.Uint16(data[8:10])
 	h.ARCount = binary.BigEndian.Uint16(data[10:12])
-	return &h
+	return h
 }

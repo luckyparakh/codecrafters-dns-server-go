@@ -8,19 +8,35 @@ import (
 )
 
 type Message struct {
-	Header
+	Header   Header
+	Question Question
+	Answer   Answer
+}
+type config struct {
+	Address  string
+	Port     string
+	Protocol string
+}
+
+func getConnection(c config) (*net.UDPConn, error) {
+	hostPort := net.JoinHostPort(c.Address, c.Port)
+	udpAddr, err := net.ResolveUDPAddr(c.Protocol, hostPort)
+	if err != nil {
+		return nil, err
+	}
+	return net.ListenUDP(c.Protocol, udpAddr)
 }
 
 func main() {
-	udpAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:2053")
-	if err != nil {
-		fmt.Println("Failed to resolve UDP address:", err)
-		return
+	c := config{
+		Address:  "127.0.0.1",
+		Port:     "2053",
+		Protocol: "udp",
 	}
 
-	udpConn, err := net.ListenUDP("udp", udpAddr)
+	udpConn, err := getConnection(c)
 	if err != nil {
-		fmt.Println("Failed to bind to address:", err)
+		fmt.Println("Failed to get connection:", err)
 		return
 	}
 	defer udpConn.Close()
@@ -36,38 +52,31 @@ func main() {
 
 		receivedData := string(buf[:size])
 		fmt.Printf("Received %d bytes from %s: %s\n", size, source, receivedData)
-		receivedHeader := ParseHeader(buf[:12])
-		fmt.Printf("\nReceived Header %+v\n", receivedHeader)
+		parsedMessage := parseData(buf)
 
 		var rc uint8
-		if receivedHeader.OC != 0 {
+		if parsedMessage.Header.OC != 0 {
 			rc = 4
 		}
 
 		h := Header{
-			ID:      receivedHeader.ID,
+			ID:      parsedMessage.Header.ID,
 			QR:      true,
-			OC:      receivedHeader.OC,
+			OC:      parsedMessage.Header.OC,
 			AA:      false,
 			TC:      false,
-			RD:      receivedHeader.RD,
+			RD:      parsedMessage.Header.RD,
 			RA:      false,
 			Z:       0,
 			RC:      rc,
-			QDCount: receivedHeader.QDCount,
+			QDCount: parsedMessage.Header.QDCount,
 			ANCount: 1,
-			NSCount: receivedHeader.NSCount,
-			ARCount: receivedHeader.ARCount,
-		}
-
-		q := Question{
-			DomainName: "codecrafters.io",
-			Type:       1,
-			Class:      1,
+			NSCount: parsedMessage.Header.NSCount,
+			ARCount: parsedMessage.Header.ARCount,
 		}
 
 		a := Answer{
-			Name:     "codecrafters.io",
+			Name:     parsedMessage.Question.DomainName,
 			Type:     1,
 			Class:    1,
 			TTL:      60,
@@ -80,11 +89,24 @@ func main() {
 		// Create an empty response
 		response := []byte{}
 		response = append(response, h.Encode()...)
-		response = append(response, q.Encode()...)
+		response = append(response, parsedMessage.Question.Encode()...)
 		response = append(response, a.Encode()...)
 		_, err = udpConn.WriteToUDP(response, source)
 		if err != nil {
 			fmt.Println("Failed to send response:", err)
 		}
+	}
+}
+
+func parseData(data []byte) Message {
+	receivedHeader := ParseHeader(data[:12])
+	fmt.Printf("\nReceived Header: %+v\n", receivedHeader)
+
+	q := ParseQuestion(data[12:])
+	fmt.Printf("Question: %+v\n", q)
+
+	return Message{
+		Header:   receivedHeader,
+		Question: q,
 	}
 }
