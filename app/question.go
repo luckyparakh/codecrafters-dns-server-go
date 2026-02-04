@@ -96,6 +96,56 @@ func parseName(data []byte, offset int) (string, int, error) {
 	return string(domain), curOffset, nil
 }
 
+func ParseQuestion(data []byte) Question {
+	curr := 0
+	var domainParts = make([]string, 0, 8) // 8 is a reasonable default for most domain names
+
+	for curr < len(data) {
+		// Read the length of the next label
+		lengthOfLabel := int(data[curr])
+
+		// If length is 0, we've reached the end of the domain name
+		if lengthOfLabel == 0 {
+			curr++ // Move past the null byte
+			break
+		}
+		curr++
+
+		// Safety check to avoid out-of-bounds slice
+		if curr+lengthOfLabel > len(data) {
+			fmt.Println("Invalid label length, out of bounds")
+			break
+		}
+
+		// Get the label and append to the domain name
+		label := data[curr : curr+lengthOfLabel]
+
+		// Append the label to domain parts only if it's non-empty
+		// can happen in cases like "example..com"
+		if len(label) > 0 {
+			domainParts = append(domainParts, string(label))
+		}
+
+		// Move the cursor past the current label
+		curr += lengthOfLabel
+	}
+
+	if curr+4 > len(data) {
+		// Not enough data for Type and Class
+		return Question{}
+	}
+
+	qType := binary.BigEndian.Uint16(data[curr : curr+2])
+	curr += 2
+	qClass := binary.BigEndian.Uint16(data[curr : curr+2])
+	return Question{
+		DomainName: strings.Join(domainParts, "."),
+		Type:       qType,
+		Class:      qClass,
+	}
+}
+
+// One more version of ParseQuestion
 func ParseQuestion1(data []byte) Question {
 	domain := make([]byte, 0, 64)
 	curOffset := 0
@@ -130,55 +180,6 @@ func ParseQuestion1(data []byte) Question {
 	qClass := binary.BigEndian.Uint16(data[curOffset : curOffset+2])
 	return Question{
 		DomainName: string(domain),
-		Type:       qType,
-		Class:      qClass,
-	}
-}
-
-func ParseQuestion(data []byte) Question {
-	curr := 0
-	// var sb strings.Builder
-	var domainParts []string
-	for curr < len(data) {
-		// currByte := data[curr]
-		// if currByte == 0x00 {
-		// 	curr++ // Move past the null byte
-		// 	break
-		// }
-
-		lengthOfLabel := int(data[curr])
-		if lengthOfLabel == 0 {
-			curr++
-			break
-		}
-		curr++
-
-		// Safety check to avoid out-of-bounds slice
-		if curr+lengthOfLabel > len(data) {
-			fmt.Println("Invalid label length, out of bounds")
-			break
-		}
-
-		// Get the label and append to the domain name
-		label := data[curr : curr+lengthOfLabel]
-		if len(label) > 0 {
-			// sb.Write(label)
-			// sb.WriteByte('.')
-			domainParts = append(domainParts, string(label))
-		}
-		curr += lengthOfLabel
-	}
-
-	if curr+4 > len(data) {
-		// Not enough data for Type and Class
-		return Question{}
-	}
-
-	qType := binary.BigEndian.Uint16(data[curr : curr+2])
-	curr += 2
-	qClass := binary.BigEndian.Uint16(data[curr : curr+2])
-	return Question{
-		DomainName: strings.Join(domainParts, "."),
 		Type:       qType,
 		Class:      qClass,
 	}
