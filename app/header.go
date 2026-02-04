@@ -72,24 +72,22 @@ func (h *Header) Encode() []byte {
 func ParseHeader(data []byte) *Header {
 	h := Header{}
 	h.ID = binary.BigEndian.Uint16(data[0:2])
+
 	flags := binary.BigEndian.Uint16(data[2:4])
-	if (flags & 0x8000) == 1 {
-		h.QR = true
-	}
-	h.OC = uint8(flags & 0x7800)
-	if (flags << 6 & 0x8000) == 1 {
-		h.AA = true
-	}
-	if (flags << 7 & 0x8000) == 1 {
-		h.TC = true
-	}
-	if (flags << 8 & 0x8000) == 1 {
-		h.RD = true
-	}
-	if (flags << 9 & 0x8000) == 1 {
-		h.RA = true
-	}
-	h.Z = uint8(flags & 0x0070)
+	h.QR = (flags & 0x8000) != 0
+	// why >> 11? because OC is in bits 11 to 14,
+	// so we need to shift right by 11 to get the value in the lowest 4 bits
+	// so we can get OC Value by masking with 0x0F (00001111) to ensure we only get the last 4 bits
+	h.OC = uint8(((flags & 0x7800) >> 11) & 0x0F)
+	h.AA = (flags & 0x0400) != 0
+	h.TC = (flags & 0x0200) != 0
+	h.RD = (flags & 0x0100) != 0
+	h.RA = (flags & 0x0080) != 0
+
+	// Z is in bits 4 to 6, so we need to shift right by 4 to get the value in the lowest 3 bits
+	// Shift right by 4 to get Z in the lowest 3 bits,
+	// then mask with 0x07 (00000111) to ensure we only get the last 3 bits
+	h.Z = uint8(((flags & 0x0070) >> 4) & 0x07)
 	h.RC = uint8(flags & 0x000F)
 
 	h.QDCount = binary.BigEndian.Uint16(data[4:6])
